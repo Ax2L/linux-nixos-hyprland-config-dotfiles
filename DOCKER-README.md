@@ -11,25 +11,53 @@ This Docker setup provides an environment with NixOS and the Hyprland configurat
   - Modifying the configuration for later use on a real NixOS system
   - Testing specific utilities included in the configuration
 
+## NVIDIA GPU Support
+
+This container includes NVIDIA GPU support through the NVIDIA Container Toolkit. To use it:
+
+1. Ensure you have the NVIDIA Container Toolkit installed on your host:
+
+   ```bash
+   # For Ubuntu/Debian
+   distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+   curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+   curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+   sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
+   sudo systemctl restart docker
+
+   # For other distributions, see: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
+   ```
+
+2. The docker-compose.yml is already configured to use the NVIDIA runtime.
+
+3. Verify GPU access inside the container:
+   ```bash
+   docker-compose exec nixos-hyprland nvidia-smi
+   ```
+
 ## Quick Start
 
 1. Make the installation script executable:
+
    ```bash
    chmod +x install.sh
    ```
 
 2. Run the installation script:
+
    ```bash
    ./install.sh
    ```
-   
+
    This script will:
+
    - Check for and install dependencies (Docker, Docker Compose, Git)
    - Clone the repository if necessary
    - Build the Docker container
    - Set up the environment
 
 3. Start the container:
+
    ```bash
    docker-compose up -d
    ```
@@ -44,6 +72,7 @@ This Docker setup provides an environment with NixOS and the Hyprland configurat
 To export the configuration for use on a real NixOS system:
 
 1. Run the export script:
+
    ```bash
    chmod +x export-config.sh
    ./export-config.sh
@@ -75,4 +104,4 @@ To use this configuration on a real NixOS system:
 
 - Edit files in the `nixos/` directory to modify system configuration
 - Edit files in the `home/` directory to modify user configuration
-- Rebuild the container after making changes: `docker-compose build` 
+- Rebuild the container after making changes: `docker-compose build`

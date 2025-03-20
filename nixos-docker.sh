@@ -20,6 +20,35 @@ command_exists() {
   command -v "$1" &> /dev/null
 }
 
+# Check for NVIDIA GPUs
+check_nvidia_status() {
+  print_message "$YELLOW" "Checking NVIDIA GPU status..."
+  
+  if command -v nvidia-smi &> /dev/null; then
+    if nvidia-smi &> /dev/null; then
+      print_message "$GREEN" "NVIDIA GPU detected and operational."
+      
+      # Check if container is running and nvidia-container-toolkit is working
+      if docker ps -q --filter "name=nixos-hyprland" &> /dev/null; then
+        if docker exec nixos-hyprland nvidia-smi &> /dev/null; then
+          print_message "$GREEN" "Container has access to NVIDIA GPU."
+        else
+          print_message "$RED" "Container doesn't have access to NVIDIA GPU."
+          print_message "$YELLOW" "Verify NVIDIA Container Toolkit is properly installed."
+        fi
+      else
+        print_message "$YELLOW" "Container is not running. Cannot verify GPU access."
+      fi
+    else
+      print_message "$RED" "NVIDIA GPU detected but not operational. Check drivers."
+    fi
+  else
+    print_message "$YELLOW" "No NVIDIA GPU detected or drivers not installed."
+  fi
+  
+  read -p "Press enter to continue..."
+}
+
 # Main menu
 show_menu() {
   clear
@@ -34,9 +63,10 @@ show_menu() {
   print_message "$GREEN" "6) Rebuild - Rebuild the container after changes"
   print_message "$GREEN" "7) Status - Check container status"
   print_message "$GREEN" "8) View logs"
-  print_message "$RED" "9) Exit"
+  print_message "$GREEN" "9) Check NVIDIA GPU status"
+  print_message "$RED" "0) Exit"
   print_message "$BLUE" "============================================================"
-  echo -n "Enter your choice [1-9]: "
+  echo -n "Enter your choice [0-9]: "
 }
 
 # Setup function
@@ -156,7 +186,10 @@ while true; do
         view_logs
       fi
       ;;
-    9) 
+    9)
+      check_nvidia_status
+      ;;
+    0) 
       print_message "$GREEN" "Goodbye!"
       exit 0
       ;;

@@ -90,6 +90,42 @@ check_git() {
   fi
 }
 
+# Check for NVIDIA
+check_nvidia() {
+  if command -v nvidia-smi &> /dev/null; then
+    print_message "$GREEN" "NVIDIA GPU detected."
+    
+    # Check if nvidia-container-toolkit is installed
+    if ! command -v nvidia-container-cli &> /dev/null; then
+      print_message "$YELLOW" "NVIDIA Container Toolkit not found but NVIDIA GPU detected."
+      print_message "$YELLOW" "Would you like to install NVIDIA Container Toolkit? (y/n)"
+      read -r answer
+      if [[ "$answer" =~ ^[Yy]$ ]]; then
+        print_message "$YELLOW" "Installing NVIDIA Container Toolkit..."
+        
+        if command -v apt &> /dev/null; then
+          distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+          curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+          curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+          sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
+          sudo systemctl restart docker
+        elif command -v dnf &> /dev/null; then
+          distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+          sudo dnf config-manager --add-repo https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.repo
+          sudo dnf install -y nvidia-container-toolkit
+          sudo systemctl restart docker
+        else
+          print_message "$RED" "Automatic installation not supported for your distribution."
+          print_message "$YELLOW" "Please install NVIDIA Container Toolkit manually:"
+          print_message "$YELLOW" "https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html"
+        fi
+      fi
+    else
+      print_message "$GREEN" "NVIDIA Container Toolkit is already installed."
+    fi
+  fi
+}
+
 # Clone repository if not already present
 clone_repo() {
   local repo_url="https://github.com/XNM1/linux-nixos-hyprland-config-dotfiles.git"
@@ -155,6 +191,7 @@ build_container() {
 check_docker
 check_docker_compose
 check_git
+check_nvidia
 clone_repo
 make_executable
 setup_export_dir

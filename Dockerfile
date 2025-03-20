@@ -9,6 +9,9 @@ ENV PATH="${PATH}:/nix/var/nix/profiles/default/bin"
 RUN nix-env -iA nixpkgs.git nixpkgs.fish nixpkgs.ripgrep nixpkgs.wget \
     && nix-env -iA nixpkgs.gnused nixpkgs.findutils nixpkgs.coreutils
 
+# Install NVIDIA utilities when available
+RUN nix-env -iA nixpkgs.nvtop nixpkgs.nvidia-vaapi-driver || true
+
 # Create user manually without useradd (which isn't available)
 RUN mkdir -p $HOME \
     && echo "$USER:x:1000:1000:$USER,,,:/home/$USER:/bin/sh" >> /etc/passwd \
