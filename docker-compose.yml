@@ -1,0 +1,18 @@
+services:
+  nixos-hyprland:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nixos-hyprland
+    volumes:
+      # Mount your local configuration for persistent changes
+      - ./exported_config:/exported_config:rw
+    environment:
+      - TERM=xterm-256color
+      - NIX_REMOTE=daemon
+    stdin_open: true  # -i
+    tty: true         # -t
+    user: "1000"
+    # Grant some capabilities to allow nix to work properly
+    cap_add:
+      - SYS_ADMIN
