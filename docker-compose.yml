@@ -8,19 +8,18 @@ services:
       # Mount your local configuration for persistent changes
       - ./exported_config:/exported_config:rw
     environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
       - TERM=xterm-256color
       - NIX_REMOTE=daemon
-    stdin_open: true  # -i
-    tty: true         # -t
+    stdin_open: true # -i
+    tty: true # -t
     user: "1000"
     # Grant some capabilities to allow nix to work properly
     cap_add:
       - SYS_ADMIN
     # NVIDIA Configuration
     runtime: nvidia
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=all
     deploy:
       resources:
         reservations:
